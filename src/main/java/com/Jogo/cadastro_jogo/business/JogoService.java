@@ -2,6 +2,8 @@ package com.Jogo.cadastro_jogo.business;
 
 import com.Jogo.cadastro_jogo.infrastructure.entitys.Jogo;
 import com.Jogo.cadastro_jogo.infrastructure.repository.JogoRepository;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,18 +23,25 @@ public class JogoService {
         return repository.saveAndFlush(jogo);
     }
 
-    public List<Jogo> listarJogos() {
-        return repository.findAll();
+    public List<Jogo> buscarComFiltros(String nome, String genero, String plataforma, Double preco) {
+        Jogo filtro = Jogo.builder()
+                .nome(nome)
+                .genero(genero)
+                .plataforma(plataforma)
+                .preco(preco)
+                .build();
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreCase()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+
+        return repository.findAll(Example.of(filtro, matcher));
     }
 
     public Jogo buscarJogoPorId(Integer id) {
         return repository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Jogo nao encontrado")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Jogo não encontrado")
         );
-    }
-
-    public List<Jogo> buscarJogosPorNome(String nome) {
-        return repository.findByNomeContainingIgnoreCase(nome);
     }
 
     public Jogo atualizarJogoPorId(Integer id, Jogo jogo) {
